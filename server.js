@@ -3,6 +3,7 @@ const { default: makeWASocket, useSingleFileAuthState } = require('baileys');
 const qrcode = require('qrcode');
 const fs = require('fs');
 const path = require('path');
+const pino = require('pino');
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -14,19 +15,24 @@ app.get('/', (req, res) => {
   res.send('🚀 Ancore Pair Code Server is Live.');
 });
 
-// Serve pair.html on /pair
+// Serve /pair route page
 app.get('/pair', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/pair.html'));
 });
 
-// Serve qr.html on /qr if you have a static page (optional)
-// Or use dynamic QR Code generation (already set below)
+// Serve QR page (if static)
+app.get('/qr', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/qr.html'));
+});
 
-// QR Code session
+// Dynamic QR Code session generator
 app.get('/qr-session', async (req, res) => {
   const { state, saveState } = useSingleFileAuthState('./ancore-qr-session.json');
 
-  const sock = makeWASocket({ auth: state });
+  const sock = makeWASocket({
+    auth: state,
+    logger: pino({ level: 'silent' })
+  });
 
   sock.ev.on('connection.update', async ({ qr, connection, lastDisconnect }) => {
     if (qr) {
@@ -52,7 +58,11 @@ app.get('/code', async (req, res) => {
   if (!number) return res.json({ status: false, message: "Number is required." });
 
   const { state, saveState } = useSingleFileAuthState(`./ancore-pair-${number}.json`);
-  const sock = makeWASocket({ auth: state });
+
+  const sock = makeWASocket({
+    auth: state,
+    logger: pino({ level: 'silent' })
+  });
 
   sock.ev.on('connection.update', async ({ pairingCode, connection, lastDisconnect }) => {
     if (pairingCode) {
@@ -71,6 +81,7 @@ app.get('/code', async (req, res) => {
   sock.ev.on('creds.update', saveState);
 });
 
+// Start the server
 app.listen(port, () => {
   console.log(`🔥 Ancore Pair Server running at http://localhost:${port}`);
 });
