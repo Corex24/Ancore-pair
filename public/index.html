@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ancore MD - Session Portal</title>
+  <link rel="icon" href="https://files.catbox.moe/ztq2yj.jpeg" type="image/x-icon"/>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: url('https://files.catbox.moe/dmxoe7.jpeg') no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    h1 {
+      font-size: 2.5rem;
+      background: linear-gradient(45deg, #ff4d6d, #ff85a2);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+    .btn {
+      padding: 1rem 2rem;
+      margin: 1rem;
+      font-size: 1.2rem;
+      color: #fff;
+      background: linear-gradient(135deg, #ff4d6d, #ff85a2);
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+    }
+    .footer {
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      color: #ddd;
+    }
+  </style>
+</head>
+<body>
+  <img src="https://files.catbox.moe/ztq2yj.jpeg" alt="Ancore Logo" width="120" style="border-radius:50%; margin-bottom:20px;">
+  <h1>Welcome to Ancore MD</h1>
+  <button class="btn" onclick="window.location.href='/qr'">Scan QR Code</button>
+  <button class="btn" onclick="window.location.href='/pair'">Get Pair Code</button>
+  <div class="footer">🌍 Powered by Ancore | 💙 built by Corex</div>
+</body>
+</html>
