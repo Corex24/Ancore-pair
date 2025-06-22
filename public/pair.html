@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ancore MD - Pair Code</title>
+  <link rel="icon" href="https://files.catbox.moe/ztq2yj.jpeg" type="image/x-icon"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.7/axios.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: url('https://files.catbox.moe/dmxoe7.jpeg') no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    h1 {
+      font-size: 2.3rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(45deg, #ff4d6d, #ff85a2);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+    input {
+      padding: 1rem;
+      border-radius: 20px;
+      border: none;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    button {
+      padding: 0.8rem 2rem;
+      background: linear-gradient(135deg, #ff4d6d, #ff85a2);
+      border: none;
+      border-radius: 30px;
+      color: #fff;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 1rem;
+      font-size: 1.3rem;
+      color: #fff;
+    }
+    .footer {
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      color: #ddd;
+    }
+  </style>
+</head>
+<body>
+  <h1>Generate Pair Code</h1>
+  <input type="text" id="number" placeholder="Enter number e.g 2348036869669">
+  <br>
+  <button onclick="getCode()">Get Pair Code</button>
+  <div id="result"></div>
+
+  <div class="footer">🐾 Powered by Ancore | ❤️ Corex</div>
+
+  <script>
+    async function getCode() {
+      const number = document.getElementById('number').value;
+      if (!number) return alert('Please enter a number');
+
+      document.getElementById('result').innerHTML = '⏳ Generating...';
+
+      try {
+        const res = await axios.get(`/code?number=${number}`);
+        document.getElementById('result').innerHTML = `🔑 Pair Code: <b>${res.data.code}</b>`;
+      } catch (e) {
+        document.getElementById('result').innerHTML = '❌ Failed to generate. Try again.';
+      }
+    }
+  </script>
+</body>
+</html>
