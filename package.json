@@ -1,14 +1,14 @@
 {
-  "name": "ancore-bot",
+  "name": "ancore-pair",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Ancore MD Session Pair Code and QR Portal",
+  "main": "server.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node server.js"
   },
   "dependencies": {
+    "baileys": "github:Corex24/XD-Baileys",
     "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "pino": "^8.19.0",
-    "qrcode": "^1.5.1"
+    "axios": "^1.5.0"
   }
 }
