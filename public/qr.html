@@ -2,72 +2,155 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Ancore MD - QR Code Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ancore MD - QR Session</title>
   <link rel="icon" href="https://files.catbox.moe/ztq2yj.jpeg" type="image/x-icon"/>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.7/axios.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
   <style>
+    :root {
+      --primary: #ff4d6d;
+      --secondary: #3498db;
+      --accent: #e74c3c;
+      --dark: #0f0f0f;
+      --light: #ffffff;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
-      margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background: url('https://files.catbox.moe/dmxoe7.jpeg') no-repeat center center fixed;
       background-size: cover;
-      color: #fff;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      min-height: 100vh;
+      color: var(--light);
+      backdrop-filter: blur(3px);
     }
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-      background: linear-gradient(45deg, #ff4d6d, #ff85a2);
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(5px);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .logo img {
+      width: 36px;
+      border-radius: 50%;
+    }
+
+    .logo span {
+      font-size: 1.3rem;
+      font-weight: 700;
+      background: linear-gradient(45deg, var(--primary), var(--secondary));
       -webkit-background-clip: text;
       color: transparent;
     }
-    img {
-      margin-top: 1rem;
-      width: 250px;
-      border: 8px solid #ff4d6d;
+
+    .back {
+      color: var(--light);
+      text-decoration: none;
+      font-size: 1rem;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 6rem auto;
+      padding: 2rem;
+      background: rgba(0,0,0,0.7);
       border-radius: 20px;
+      text-align: center;
     }
-    button {
-      margin-top: 2rem;
-      padding: 0.8rem 2rem;
-      background: linear-gradient(135deg, #ff4d6d, #ff85a2);
-      border: none;
-      border-radius: 30px;
-      color: #fff;
+
+    h1 {
+      font-size: 2rem;
+      background: linear-gradient(45deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      color: transparent;
+      margin-bottom: 1.5rem;
+    }
+
+    #qr-box {
+      margin: 2rem auto;
+      padding: 1rem;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      width: 260px;
+      height: 260px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #qr-box img {
+      max-width: 240px;
+    }
+
+    #status {
+      margin-top: 1rem;
       font-size: 1.1rem;
-      cursor: pointer;
+      color: var(--secondary);
     }
+
     .footer {
-      margin-top: 2rem;
+      text-align: center;
       font-size: 0.9rem;
-      color: #ddd;
+      color: rgba(255,255,255,0.6);
+      margin-top: 2rem;
+      padding: 1.5rem;
     }
   </style>
 </head>
 <body>
-  <h1>Scan QR Code</h1>
-  <div id="qrcode">⏳ Loading QR Code...</div>
-  <button onclick="reload()">Reload QR</button>
-  <div class="footer">🌍 Powered by Ancore | 💙 Corex</div>
 
+  <header>
+    <div class="logo">
+      <img src="https://files.catbox.moe/ztq2yj.jpeg" alt="logo">
+      <span>Ancore MD</span>
+    </div>
+    <a href="/" class="back"><i class="fas fa-arrow-left"></i> Back</a>
+  </header>
+
+  <div class="container">
+    <h1>Scan QR Code</h1>
+    <div id="qr-box">
+      <img id="qr-img" src="" alt="QR Code"/>
+    </div>
+    <div id="status">Waiting for QR code...</div>
+  </div>
+
+  <div class="footer">
+    © 2025 Ancore MD. Powered by Corex24.
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0-alpha.1/axios.min.js"></script>
   <script>
+    const qrImg = document.getElementById('qr-img');
+    const statusText = document.getElementById('status');
+
     async function fetchQR() {
-      document.getElementById('qrcode').innerHTML = '⏳ Loading...';
       try {
-        const res = await axios.get('/qr');
-        document.getElementById('qrcode').innerHTML = `<img src="${res.data.qr}" alt="QR Code">`;
-      } catch (e) {
-        document.getElementById('qrcode').innerHTML = '❌ Failed to load QR. Try reloading.';
+        const { data } = await axios.get('/qr');  // make sure your backend serves QR image as base64 data
+        if (data && data.qr) {
+          qrImg.src = data.qr;
+          statusText.innerHTML = "Scan this QR with WhatsApp to connect.";
+        } else {
+          statusText.innerHTML = "No QR available.";
+        }
+      } catch (err) {
+        statusText.innerHTML = "Failed to load QR. Check connection.";
       }
     }
+
     fetchQR();
-    function reload() {
-      fetchQR();
-    }
+    setInterval(fetchQR, 5000); // refresh QR every 5 seconds
   </script>
 </body>
 </html>
