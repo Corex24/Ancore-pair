@@ -1,78 +1,72 @@
-const express = require('express');
-const { default: makeWASocket, useSingleFileAuthState } = require('@whiskeysockets/baileys');
-const qrcode = require('qrcode');
-const path = require('path');
-const fs = require('fs');
+import express from 'express';
+import pino from 'pino';
+import { Boom } from '@hapi/boom';
+import { default as makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } from '@whiskeysockets/baileys';
+import qrcode from 'qrcode';
+import cors from 'cors';
+import fs from 'fs';
+import path from 'path';
 
 const app = express();
-const port = process.env.PORT || 8080;
+const log = pino({ transport: { target: 'pino-pretty' } });
+const PORT = process.env.PORT || 8080;
 
+app.use(cors());
 app.use(express.static('public'));
 
-// Home route
 app.get('/', (req, res) => {
-  res.send('🔥 Ancore MD Pair & QR Session Portal is running.');
+  res.sendFile(path.join(process.cwd(), 'public/index.html'));
 });
 
-// QR Code session
-app.get('/qr', async (req, res) => {
-  const { state, saveState } = useSingleFileAuthState('./Ancore_QRSession.json');
-  const sock = makeWASocket({ auth: state });
-
-  sock.ev.on('connection.update', async ({ qr, connection, lastDisconnect }) => {
-    if (qr) {
-      const qrImage = await qrcode.toDataURL(qr);
-      res.send(`<h2>Scan QR:</h2><img src="${qrImage}" style="width:300px;">`);
-    }
-
-    if (connection === 'open') {
-      console.log('✅ WhatsApp connected via QR.');
-    }
-
-    if (lastDisconnect) {
-      console.log('🔌 QR Disconnected, restarting...');
-    }
-  });
-
-  sock.ev.on('creds.update', saveState);
+app.get('/pair', (req, res) => {
+  res.sendFile(path.join(process.cwd(), 'public/pair.html'));
 });
 
-// Pair Code session
+app.get('/qr', (req, res) => {
+  res.sendFile(path.join(process.cwd(), 'public/qr.html'));
+});
+
 app.get('/code', async (req, res) => {
   const number = req.query.number;
-  if (!number) return res.json({ status: false, message: "⚠️ Number query is required." });
+  if (!number) return res.status(400).json({ error: 'No number provided' });
 
-  const sessionFile = `./Ancore_${number}.json`;
-  const { state, saveState } = useSingleFileAuthState(sessionFile);
-  const sock = makeWASocket({ auth: state });
+  const sessionId = `Ancore_${Date.now()}`;
+  const { state, saveCreds } = await useMultiFileAuthState(`./sessions/${sessionId}`);
+  const { version } = await fetchLatestBaileysVersion();
 
-  sock.ev.on('connection.update', async ({ pairingCode, connection, lastDisconnect }) => {
+  const sock = makeWASocket({
+    version,
+    auth: state,
+    printQRInTerminal: false,
+    logger: pino({ level: 'silent' })
+  });
+
+  sock.ev.on('connection.update', (update) => {
+    const { connection, qr, pairingCode, lastDisconnect } = update;
+
+    if (qr) {
+      qrcode.toDataURL(qr, (err, url) => {
+        if (err) return res.status(500).json({ error: 'QR generation failed' });
+        return res.json({ qr: url });
+      });
+    }
+
     if (pairingCode) {
-      return res.json({ status: true, code: pairingCode });
+      res.json({ code: pairingCode });
     }
 
-    if (connection === 'open') {
-      console.log(`✅ Connected via PairCode for ${number}`);
-    }
-
-    if (lastDisconnect) {
-      console.log(`🔌 Disconnected from ${number}`);
+    if (connection === 'close') {
+      const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
+      log.info(`Connection closed. Reconnect? ${shouldReconnect}`);
+      if (fs.existsSync(`./sessions/${sessionId}`)) {
+        fs.rmSync(`./sessions/${sessionId}`, { recursive: true, force: true });
+      }
     }
   });
 
-  sock.ev.on('creds.update', saveState);
+  sock.ev.on('creds.update', saveCreds);
 });
 
-// Serve static pages
-app.get('/pair', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/pair.html'));
-});
-
-app.get('/qr-page', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/qr.html'));
-});
-
-// Start server
-app.listen(port, () => {
-  console.log(`🚀 Ancore Pair Server running at http://localhost:${port}`);
+app.listen(PORT, () => {
+  log.info(`✅ Ancore MD Session Portal running at http://localhost:${PORT}`);
 });
