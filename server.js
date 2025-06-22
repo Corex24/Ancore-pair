@@ -1,77 +1,67 @@
-const express = require("express");
-const { default: makeWASocket, useSingleFileAuthState, DisconnectReason, makeInMemoryStore, fetchLatestBaileysVersion } = require("@whiskeysockets/baileys");
-const { Boom } = require("@hapi/boom");
-const qrcode = require("qrcode");
-const cors = require("cors");
-const fs = require("fs");
-const path = require("path");
+const express = require('express');
+const { default: makeWASocket, useSingleFileAuthState, generateWAMessageContent, generateWAMessageFromContent } = require('baileys');
+const qrcode = require('qrcode');
+const fs = require('fs');
+const path = require('path');
 
-// Auth file
-const { state, saveState } = useSingleFileAuthState("./session.json");
-
-// Express app
 const app = express();
-const PORT = process.env.PORT || 3000;
-app.use(cors());
+const port = process.env.PORT || 8080;
+
 app.use(express.static("public"));
 
-// WebSocket + Baileys setup
-let sock;
+app.get('/', (req, res) => {
+  res.send('🚀 Ancore Pair Code Server is Live.');
+});
 
-const connectWA = async () => {
-  const { version } = await fetchLatestBaileysVersion();
-  sock = makeWASocket({
-    printQRInTerminal: false,
-    auth: state,
-    version
-  });
+// QR Code Session
+app.get('/qr', async (req, res) => {
+  const { state, saveState } = useSingleFileAuthState('./ancore-qr-session.json');
 
-  sock.ev.on("creds.update", saveState);
+  const sock = makeWASocket({ auth: state });
 
-  sock.ev.on("connection.update", async ({ connection, qr, lastDisconnect, isNewLogin }) => {
-    if (connection === "close") {
-      const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
-      if (shouldReconnect) {
-        connectWA();
-      }
-    }
-
+  sock.ev.on('connection.update', async ({ qr, connection, lastDisconnect }) => {
     if (qr) {
-      currentQR = await qrcode.toDataURL(qr);
+      const qrImage = await qrcode.toDataURL(qr);
+      res.send(`<h2>Scan This QR Code:</h2><img src="${qrImage}" style="width:300px;">`);
+    }
+
+    if (connection === 'open') {
+      console.log('✅ WhatsApp Connected via QR.');
+    }
+
+    if (lastDisconnect) {
+      console.log('🔌 Disconnected, restarting...');
     }
   });
-};
 
-let currentQR = null;
-
-connectWA();
-
-// Routes
-
-app.get("/qr", async (req, res) => {
-  if (currentQR) {
-    res.json({ qr: currentQR });
-  } else {
-    res.json({ qr: "https://via.placeholder.com/300?text=QR+Not+Ready" });
-  }
+  sock.ev.on('creds.update', saveState);
 });
 
-// Dummy Pair Code API
-app.get("/code", async (req, res) => {
+// Pair Code Session
+app.get('/code', async (req, res) => {
   const number = req.query.number;
-  if (!number) return res.status(400).json({ error: "No number provided." });
+  if (!number) return res.json({ status: false, message: "Number is required." });
 
-  // Here you should integrate actual pair code generation if your fork supports it
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
-  res.json({ number, code });
+  const { state, saveState } = useSingleFileAuthState(`./ancore-pair-${number}.json`);
+  const sock = makeWASocket({ auth: state });
+
+  sock.ev.on('connection.update', async ({ pairingCode, connection, lastDisconnect }) => {
+    if (pairingCode) {
+      return res.json({ status: true, code: pairingCode });
+    }
+
+    if (connection === 'open') {
+      console.log(`✅ WhatsApp connected via PairCode for ${number}.`);
+    }
+
+    if (lastDisconnect) {
+      console.log(`🔌 Disconnected from ${number}`);
+    }
+  });
+
+  sock.ev.on('creds.update', saveState);
 });
 
-// Fallback
-app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-// Start server
-app.listen(PORT, () => {
-  console.log(`✅ Ancore session portal running on http://localhost:${PORT}`);
+app.listen(port, () => {
+  console.log(`🔥 Ancore Pair Server running at http://localhost:${port}`);
 });
