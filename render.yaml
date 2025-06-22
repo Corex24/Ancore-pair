@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: ancore-md-session
+    env: node
+    plan: free
+    buildCommand: 'npm install'
+    startCommand: 'node server.js'
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+    repo: https://github.com/Corex24/Ancore-pair
+    branch: main
+    autoDeploy: true
