@@ -1,18 +1,18 @@
 {
-  "name": "ancore-pair",
+  "name": "ancore-md-session-server",
   "version": "1.0.0",
-  "description": "Ancore MD Session Pair Code and QR Portal powered by Corex24",
-  "main": "server.js",
+  "description": "Ancore MD Session Portal Backend with Pair Code and QR API",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node index.js"
   },
+  "author": "Corex",
+  "license": "MIT",
   "dependencies": {
-    "@whiskeysockets/baileys": "^7.0.5",
-    "axios": "^1.5.0",
-    "express": "^4.18.2",
-    "qrcode": "^1.5.1",
-    "pino": "^8.0.0"
-  },
-  "author": "Corex24",
-  "license": "MIT"
+    "@whiskeysockets/baileys": "^6.6.0",
+    "axios": "^1.6.8",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "pino": "^8.21.0"
+  }
 }
