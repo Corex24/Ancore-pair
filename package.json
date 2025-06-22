@@ -1,18 +1,19 @@
 {
-  "name": "ancore-md-session-server",
+  "name": "ancore-md",
   "version": "1.0.0",
-  "description": "Ancore MD Session Portal Backend with Pair Code and QR API",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js"
-  },
+  "description": "Ancore MD WhatsApp Multi-Device Bot with Session Portal",
+  "main": "server.js",
   "author": "Corex",
   "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
-    "@whiskeysockets/baileys": "^6.6.0",
-    "axios": "^1.6.8",
-    "cors": "^2.8.5",
+    "@whiskeysockets/baileys": "^6.6.1",
     "express": "^4.19.2",
-    "pino": "^8.21.0"
+    "pino": "^9.2.1",
+    "qrcode": "^1.5.5",
+    "cors": "^2.8.5"
   }
 }
