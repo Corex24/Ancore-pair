@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ancore MD - Session Status</title>
+  <link rel="icon" href="https://files.catbox.moe/ztq2yj.jpeg" type="image/x-icon"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <style>
+    :root {
+      --primary: #ff4d6d;
+      --secondary: #3498db;
+      --accent: #e74c3c;
+      --dark: #0f0f0f;
+      --light: #ffffff;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: url('https://files.catbox.moe/dmxoe7.jpeg') no-repeat center center fixed;
+      background-size: cover;
+      color: var(--light);
+      backdrop-filter: blur(3px);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(5px);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .logo img {
+      width: 36px;
+      border-radius: 50%;
+    }
+
+    .logo span {
+      font-size: 1.3rem;
+      font-weight: 700;
+      background: linear-gradient(45deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .back {
+      color: var(--light);
+      text-decoration: none;
+      font-size: 1rem;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 6rem auto;
+      padding: 2rem;
+      background: rgba(0,0,0,0.7);
+      border-radius: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2rem;
+      background: linear-gradient(45deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      color: transparent;
+      margin-bottom: 1.5rem;
+    }
+
+    #status {
+      margin: 1rem 0;
+      font-size: 1.1rem;
+      color: var(--secondary);
+    }
+
+    .info {
+      font-size: 0.95rem;
+      margin-top: 0.8rem;
+      color: #ddd;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.6);
+      margin-top: 2rem;
+      padding: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <img src="https://files.catbox.moe/ztq2yj.jpeg" alt="logo">
+      <span>Ancore MD</span>
+    </div>
+    <a href="/" class="back"><i class="fas fa-arrow-left"></i> Back</a>
+  </header>
+
+  <div class="container">
+    <h1>Session Status</h1>
+    <div id="status">Fetching session status...</div>
+    <div class="info" id="details"></div>
+  </div>
+
+  <div class="footer">
+    © 2025 Ancore MD. Powered by Corex24.
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0-alpha.1/axios.min.js"></script>
+  <script>
+    const statusEl = document.getElementById('status');
+    const detailsEl = document.getElementById('details');
+
+    async function fetchStatus() {
+      try {
+        const { data } = await axios.get('/status'); // your backend should serve status JSON
+        if (data && data.connected) {
+          statusEl.innerHTML = "✅ Connected";
+          detailsEl.innerHTML = `
+            <strong>Device Name:</strong> ${data.deviceName || 'Unknown'}<br>
+            <strong>User Number:</strong> ${data.userNumber || 'Hidden'}
+          `;
+        } else {
+          statusEl.innerHTML = "❌ Not connected";
+          detailsEl.innerHTML = "No active session found.";
+        }
+      } catch (err) {
+        statusEl.innerHTML = "⚠️ Error fetching status";
+        detailsEl.innerHTML = "Unable to retrieve session data.";
+      }
+    }
+
+    fetchStatus();
+    setInterval(fetchStatus, 5000); // refresh every 5 seconds
+  </script>
+
+</body>
+</html>
