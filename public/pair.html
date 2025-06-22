@@ -1,82 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Ancore MD - Pair Code</title>
-  <link rel="icon" href="https://files.catbox.moe/ztq2yj.jpeg" type="image/x-icon"/>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.7/axios.min.js"></script>
+  <meta charset="UTF-8">
+  <title>Ancore MD - Pair Code Generator</title>
+  <link rel="icon" href="https://files.catbox.moe/ztq2yj.jpeg" type="image/x-icon">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    :root {
+      --primary: #ff4d6d;
+      --secondary: #3498db;
+      --dark: #0f0f0f;
+      --light: #ffffff;
+    }
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background: url('https://files.catbox.moe/dmxoe7.jpeg') no-repeat center center fixed;
       background-size: cover;
-      color: #fff;
-      text-align: center;
+      color: var(--light);
+      backdrop-filter: blur(2px);
+    }
+    header {
       display: flex;
-      flex-direction: column;
-      justify-content: center;
-      min-height: 100vh;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(4px);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .logo img {
+      width: 35px;
+      border-radius: 50%;
+    }
+    .logo span {
+      font-size: 1.3rem;
+      font-weight: bold;
+      background: linear-gradient(45deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+    .back {
+      color: var(--light);
+      text-decoration: none;
+      font-size: 1rem;
+    }
+    .container {
+      max-width: 500px;
+      margin: 6rem auto;
+      padding: 2rem;
+      background: rgba(0,0,0,0.65);
+      border-radius: 20px;
+      text-align: center;
     }
     h1 {
-      font-size: 2.3rem;
-      margin-bottom: 1rem;
-      background: linear-gradient(45deg, #ff4d6d, #ff85a2);
+      font-size: 2rem;
+      background: linear-gradient(45deg, var(--primary), var(--secondary));
       -webkit-background-clip: text;
       color: transparent;
     }
     input {
-      padding: 1rem;
-      border-radius: 20px;
+      width: 80%;
+      padding: 0.9rem;
+      margin-top: 1rem;
       border: none;
+      border-radius: 10px;
       font-size: 1rem;
-      margin-bottom: 1rem;
-      text-align: center;
+      outline: none;
     }
     button {
-      padding: 0.8rem 2rem;
-      background: linear-gradient(135deg, #ff4d6d, #ff85a2);
+      margin-top: 1rem;
+      padding: 0.9rem 2rem;
       border: none;
-      border-radius: 30px;
+      border-radius: 50px;
+      background: linear-gradient(45deg, var(--primary), var(--secondary));
       color: #fff;
-      font-size: 1.1rem;
+      font-size: 1rem;
       cursor: pointer;
     }
-    #result {
-      margin-top: 1rem;
-      font-size: 1.3rem;
-      color: #fff;
+    button:hover {
+      opacity: 0.9;
     }
-    .footer {
-      margin-top: 2rem;
-      font-size: 0.9rem;
-      color: #ddd;
+    #result {
+      margin-top: 1.5rem;
+      font-size: 1.1rem;
+      color: var(--secondary);
+    }
+    footer {
+      margin: 2rem 0;
+      text-align: center;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.85rem;
     }
   </style>
 </head>
 <body>
-  <h1>Generate Pair Code</h1>
-  <input type="text" id="number" placeholder="Enter number e.g 2348036869669">
-  <br>
-  <button onclick="getCode()">Get Pair Code</button>
-  <div id="result"></div>
 
-  <div class="footer">🐾 Powered by Ancore | 💙 Corex</div>
+  <header>
+    <div class="logo">
+      <img src="https://files.catbox.moe/ztq2yj.jpeg">
+      <span>Ancore MD</span>
+    </div>
+    <a href="/" class="back"><i class="fas fa-arrow-left"></i> Back</a>
+  </header>
 
+  <div class="container">
+    <h1>Generate Pair Code</h1>
+    <input type="tel" id="number" placeholder="e.g. 2347012345678">
+    <button onclick="generateCode()">Generate Code</button>
+    <div id="result"></div>
+  </div>
+
+  <footer>
+    © 2025 Ancore MD. All rights reserved.
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.7/axios.min.js"></script>
   <script>
-    async function getCode() {
-      const number = document.getElementById('number').value;
-      if (!number) return alert('Please enter a number');
+    async function generateCode() {
+      const num = document.getElementById("number").value.replace(/\D/g, '');
+      const resultDiv = document.getElementById("result");
 
-      document.getElementById('result').innerHTML = '⏳ Generating...';
+      if (num.length < 10) {
+        resultDiv.innerHTML = `<span style="color: var(--primary);">Invalid number format.</span>`;
+        return;
+      }
+
+      resultDiv.innerHTML = "Generating your pair code...";
 
       try {
-        const res = await axios.get(`/code?number=${number}`);
-        document.getElementById('result').innerHTML = `🔑 Pair Code: <b>${res.data.code}</b>`;
-      } catch (e) {
-        document.getElementById('result').innerHTML = '❌ Failed to generate. Try again.';
+        const res = await axios.get(`/code?number=${num}`);
+        const code = res.data.code || "Unavailable";
+
+        resultDiv.innerHTML = `<div onclick="copyCode('${code}')" style="cursor:pointer;padding:10px 20px;border-radius:10px;background:rgba(255,255,255,0.07);color:var(--light);">CODE: <span style="color:var(--primary);font-weight:bold">${code}</span> <br>(Click to Copy)</div>`;
+      } catch (err) {
+        resultDiv.innerHTML = `<span style="color: var(--primary);">Failed to retrieve code.</span>`;
       }
     }
+
+    function copyCode(code) {
+      navigator.clipboard.writeText(code);
+      document.getElementById("result").innerHTML = `<span style="color:var(--secondary);font-weight:bold">Copied to clipboard!</span>`;
+    }
   </script>
+
 </body>
 </html>
